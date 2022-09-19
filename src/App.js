@@ -6,6 +6,7 @@ class howLong extends Component {
     super();
 
     this.state = {
+      gameOn: false,
       foundMatch: false,
       inputNumbers: '',
       selectedNumbers: [],
@@ -50,10 +51,37 @@ class howLong extends Component {
     }
   }
 
+  checkArrays(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+
+  startTheGame() {
+    const { gameOn, foundMatch, selectedNumbers, tries } = this.state;
+    if (gameOn) return this.setState({ ...this.state, gameOn: !gameOn });
+    while (foundMatch === false) {
+      const generatedArray = [1, 2, 3, 4, 5, 6];
+      if (this.checkArrays(generatedArray, selectedNumbers)) {
+        this.setState({ ...this.state, foundMatch: true })
+        break
+      }
+      else {
+        this.setState({...this.state, tries: tries + 1})
+        break
+      }
+    }
+  }
+
   render() {
-    const { inputNumbers, foundMatch, selectedNumbers, tries } = this.state;
+    const { inputNumbers, foundMatch, selectedNumbers, tries, gameOn } = this.state;
     return (
-      foundMatch ? console.log('match') : 
+      foundMatch ? <h1>Matchzão da massa</h1> : 
       <div>
         <header>
           <h1>Quanto tempo para você ficar milionário?</h1>
@@ -112,15 +140,23 @@ class howLong extends Component {
                   { selectedNumbers[5] }.
                 </h3>
                 <h3>Boa Sorte!</h3>
+                { !gameOn && 
                 <button onClick={() => this.setState({ ...this.state, selectedNumbers:'' })}>
                   Escolher outros números
                 </button>
-                <button>
-                  <strong>Iniciar o jogo!</strong>
+                }
+                <button onClick={() => this.startTheGame()}>
+                  { gameOn ? 'Parar!' : 'Iniciar o jogo!' }
                 </button>
               </>
             }
           </div>
+          { gameOn && 
+          <div>
+            <h1>It's time!</h1>
+            <h2>Tentativas: <span>{ tries }</span></h2>
+          </div>
+          }
         </body>
       </div>
     )
