@@ -1,39 +1,30 @@
 import './App.css';
-import { Component } from 'react'
+import { React, useState } from 'react'
 
-class howLong extends Component {
-  constructor(){
-    super();
+function HowLong () {
+  const [game, setGame] = useState(false);
+  const [foundMatch, setFoundMatch] = useState(false);
+  const [inputNumbers, setInputNumbers] = useState('');
+  const [selectedNumbers, setSelectedNumbers] = useState([]);
+  const [startTime, setStartTime] = useState();
+  const [tries, setTries] = useState(0);
 
-    this.state = {
-      gameOn: false,
-      foundMatch: false,
-      inputNumbers: '',
-      selectedNumbers: [],
-      tries: 0,
-    }
-  }
-
-  verifyInput() {
-    const { inputNumbers } = this.state;
+  function verifyInput() {
     const arrayStr = inputNumbers.split(' ');
     const numbers = arrayStr.map((e) => Number(e));
     const arrayFiltrado = [];
     numbers.forEach((n) => {
       if (n < 1 || n > 60 || typeof n !== 'number') {
-        return this.setState({...this.state, inputNumbers: ''})
+        return setInputNumbers('')
       }
       if (arrayFiltrado.includes(n)){
-        return this.setState({...this.state, inputNumbers: ''})
+        return setInputNumbers('')
       }
       arrayFiltrado.push(n);
     })
       if (arrayFiltrado.length === 6) {
-        this.setState({
-          ...this.state,
-          inputNumbers:'',
-          selectedNumbers: arrayFiltrado.sort((a, b) => b < a),
-        })
+        setInputNumbers('');
+        setSelectedNumbers(arrayFiltrado.sort((a, b) => b < a))
       }
     else {
       alert(
@@ -43,15 +34,12 @@ class howLong extends Component {
         - Todos separados por espaço; \n
         - Deve-se escolher exatamente seis numeros;
       `)
-      this.setState({
-        ...this.state,
-        selectedNumbers: [],
-        inputNumbers: '',
-      })
+      setSelectedNumbers([]);
+      setInputNumbers('');
     }
   }
 
-  checkArrays(a, b) {
+  function checkArrays(a, b) {
     if (a === b) return true;
     if (a == null || b == null) return false;
     if (a.length !== b.length) return false;
@@ -62,39 +50,57 @@ class howLong extends Component {
     return true;
   }
 
-  startTheGame() {
-    const { gameOn, foundMatch, selectedNumbers, tries } = this.state;
-    if (gameOn) return this.setState({ ...this.state, gameOn: !gameOn });
-    while (foundMatch === false) {
-      const generatedArray = [1, 2, 3, 4, 5, 6];
-      if (this.checkArrays(generatedArray, selectedNumbers)) {
-        this.setState({ ...this.state, foundMatch: true })
-        break
-      }
-      else {
-        this.setState({...this.state, tries: tries + 1})
-        break
-      }
+  function generateArray() {
+    let array = [];
+    let min = Math.ceil(1);
+    let max = Math.floor(61);
+    for(let i = 0; i < 6; i += 1) {
+      array.push(Math.floor(Math.random() * (max - min) + min))
     }
+    return array;
   }
 
-  render() {
-    const { inputNumbers, foundMatch, selectedNumbers, tries, gameOn } = this.state;
-    return (
-      foundMatch ? <h1>Matchzão da massa</h1> : 
-      <div>
+  async function startTheGame() {
+    if (game) return setGame(!game)
+    setStartTime(Date.now())
+    let generatedArray = generateArray();
+
+    while(Date.now() - startTime < 10000) {
+      if (checkArrays(generatedArray, selectedNumbers)) {
+        return setFoundMatch(true);
+      }
+        setTries((tries + 1))
+        // generatedArray = generateArray();
+        generatedArray = selectedNumbers
+      }
+      // return alert(
+      //   `É uma pena! \n
+      //     Após ${tries} tentativas, não conseguimos acertar tudo \n
+      //     Tente quantas vezes quiser ;) \n
+      //   - Tempo gasto: ${Math.floor((Date.now() - startTime) / 1000)} segundos \n
+      // `)
+  }
+
+  return(
+      foundMatch ? 
+      <div className='matchBody'>
+      <h1>Finalmente!</h1>
+      <h3>Você acertou após apenas <span>{tries}</span> tentativas :)</h3>
+      <h3>Toda esta brincadeira levou apenas {Math.floor((Date.now() - startTime) / 1000)} segundos</h3>
+      </div> : 
+      <div className='allBody'>
         <header>
           <h1>Quanto tempo para você ficar milionário?</h1>
           <h3>Proposta:</h3>
           <p>
             Após inúmeras tentativas de ficar rico e nunca conseguir
             acertar mais que <em>três</em> números na <strong>Mega-Sena</strong>,
-            decidi criar esta aplicação que faz centenas de tentativas por segundo
+            decidi criar esta aplicação que faz milhares de tentativas por segundo
             até você acertar as seis dezenas inseridas.
           </p>
           <h3>Instruções:</h3>
           <p>
-            Escolha seis dezenas entre 01 e 60 e clique em sortear. Cada sorteio gera aleatoriamente um resultado - semelhante à <span>famigerada</span> queridíssima <strong>Mega-Sena</strong>.
+            Escolha seis dezenas entre 01 e 60 e clique em sortear. Cada sorteio gera aleatoriamente um resultado - semelhante à <span className='famigerada'>famigerada</span> queridíssima <strong>Mega-Sena</strong>.
             Veja quantas tentativas e quanto tempo leva para um <em>computador</em> acertar as mesmas dezenas que você selecionou.
           </p>
           <h2><em>Divirta-se!</em></h2>
@@ -110,19 +116,19 @@ class howLong extends Component {
                 id="selectedNumbersInput"
                 placeholder="Insira seis números" 
                 value={ inputNumbers }
-                onChange={(e) => this.setState({...this.state, inputNumbers: e.target.value})}
+                onChange={(e) => setInputNumbers(e.target.value)}
               />
               <button
                 type="reset"
                 name="selectedNumbers"
-                onClick={() => this.setState({...this.state, inputNumbers: ''})}
+                onClick={() => setInputNumbers('')}
               >
                 Limpar
               </button>
               <button
                 type="submit"
                 name="selectedNumbers"
-                onClick={ () => this.verifyInput() }
+                onClick={ () => verifyInput() }
               >
                 <strong>Salvar</strong>
               </button>
@@ -140,18 +146,18 @@ class howLong extends Component {
                   { selectedNumbers[5] }.
                 </h3>
                 <h3>Boa Sorte!</h3>
-                { !gameOn && 
-                <button onClick={() => this.setState({ ...this.state, selectedNumbers:'' })}>
+                { !game && 
+                <button onClick={() => setSelectedNumbers('')}>
                   Escolher outros números
                 </button>
                 }
-                <button onClick={() => this.startTheGame()}>
-                  { gameOn ? 'Parar!' : 'Iniciar o jogo!' }
+                <button onClick={() => startTheGame()}>
+                  { game ? 'Parar!' : 'Iniciar o jogo!' }
                 </button>
               </>
             }
           </div>
-          { gameOn && 
+          { game && 
           <div>
             <h1>It's time!</h1>
             <h2>Tentativas: <span>{ tries }</span></h2>
@@ -161,6 +167,5 @@ class howLong extends Component {
       </div>
     )
   }
-}
 
-export default howLong;
+export default HowLong;
